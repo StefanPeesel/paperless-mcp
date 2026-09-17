@@ -52,6 +52,22 @@ async function main() {
   // Initialize API client and server once
   const api = new PaperlessAPI(baseUrl, token);
   const server = new McpServer({ name: "paperless-ngx", version: "1.0.0" });
+  const originalTool = server.tool.bind(server);
+  (server as any).tool = (...toolArgs: any[]) => {
+    const lastIndex = toolArgs.length - 1;
+    const handler = toolArgs[lastIndex];
+    if (typeof handler === "function") {
+      toolArgs[lastIndex] = async (...handlerArgs: any[]) => {
+        const result = await handler(...handlerArgs);
+        if (result && typeof result === "object" && Array.isArray((result as any).content)) {
+          return result;
+        }
+        return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+      };
+    }
+    return (originalTool as any)(...toolArgs);
+  };
+  
   registerDocumentTools(server, api);
   registerTagTools(server, api);
   registerCorrespondentTools(server, api);
