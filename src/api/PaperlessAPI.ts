@@ -144,7 +144,7 @@ export class PaperlessAPI {
 
   // Tag operations
   async getTags() {
-    return this.request("/tags/");
+    return this.request("/tags/?page_size=100000");
   }
 
   async createTag(data) {
@@ -169,7 +169,7 @@ export class PaperlessAPI {
 
   // Correspondent operations
   async getCorrespondents() {
-    return this.request("/correspondents/");
+    return this.request("/correspondents/?page_size=100000");
   }
 
   async createCorrespondent(data) {
@@ -181,7 +181,7 @@ export class PaperlessAPI {
 
   // Document type operations
   async getDocumentTypes() {
-    return this.request("/document_types/");
+    return this.request("/document_types/?page_size=100000");
   }
 
   async createDocumentType(data) {
