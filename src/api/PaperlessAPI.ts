@@ -106,6 +106,28 @@ export class PaperlessAPI {
     return this.request(`/documents/${id}/`);
   }
 
+  async updateDocument(id, data) {
+    return this.request(`/documents/${id}/`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async setCustomFieldValues(id, fieldValues) {
+    const doc: any = await this.getDocument(id);
+    const existing = Array.isArray(doc.custom_fields) ? doc.custom_fields : [];
+    const merged = existing.map((cf: any) => ({ ...cf }));
+    for (const fv of fieldValues) {
+      const idx = merged.findIndex((cf: any) => cf.field === fv.field);
+      if (idx >= 0) {
+        merged[idx].value = fv.value;
+      } else {
+        merged.push({ field: fv.field, value: fv.value });
+      }
+    }
+    return this.updateDocument(id, { custom_fields: merged });
+  }
+
   async searchDocuments(query, page?, pageSize?) {
     const params = new URLSearchParams();
     params.set("query", query);
@@ -189,6 +211,11 @@ export class PaperlessAPI {
       method: "POST",
       body: JSON.stringify(data),
     });
+  }
+
+  // Custom field operations
+  async getCustomFields() {
+    return this.request("/custom_fields/?page_size=100000");
   }
 
   // Bulk object operations
