@@ -96,6 +96,36 @@ export function registerDocumentTools(server, api) {
   );
 
   server.tool(
+    "update_document_custom_fields",
+    "Set or update custom field values on a single document (e.g. Rechnungsnummer, Kundennummer). Merges with the document's existing custom field values: fields not listed here are left unchanged, and a field ID that already has a value gets overwritten. Use list_custom_fields to find valid field IDs and their types.",
+    {
+      id: z.number().describe("Document ID to update. Get this from search_documents or get_document."),
+      custom_fields: z.array(
+        z.object({
+          field: z.number().describe("Custom field ID (from list_custom_fields)."),
+          value: z.union([z.string(), z.number(), z.boolean(), z.null()]).describe("Value to set for this custom field. Type must match the field's configured type (string, float, monetary, boolean, date, etc.)."),
+        })
+      ).describe("Array of {field, value} pairs to set on the document."),
+    },
+    async (args, extra) => {
+      if (!api) throw new Error("Please configure API connection first");
+      return api.setCustomFieldValues(args.id, args.custom_fields);
+    }
+  );
+
+  server.tool(
+    "list_custom_fields",
+    "Retrieve all custom field definitions configured in Paperless-NGX, including their IDs, names, and data types (string, float, monetary, boolean, date, etc.). Use this to find field IDs before calling update_document_custom_fields.",
+    {
+      // No parameters - returns all configured custom fields
+    },
+    async (args, extra) => {
+      if (!api) throw new Error("Please configure API connection first");
+      return api.getCustomFields();
+    }
+  );
+
+  server.tool(
     "search_documents",
     "Search through documents using full-text search across content, titles, tags, and metadata. Returns document metadata WITHOUT the full OCR content field to prevent token overflow. Use get_document to retrieve full details for specific documents of interest. Supports Paperless-NGX advanced query syntax.",
     {
